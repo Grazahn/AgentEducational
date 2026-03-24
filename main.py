@@ -22,7 +22,6 @@ def _rulare_rag(vector_store, retriever, rag_chain) -> None:
     print("\nSe proceseaza...")
     raspuns = rag_chain.invoke(intrebare)
     print("\nRaspuns:")
-    print("-" * 40)
     print(raspuns)
 
 
@@ -37,7 +36,7 @@ def _rulare_quiz(vector_store, retriever) -> None:
     quiz_chain = creeaza_quiz_chain(retriever_quiz)
     print("\nSe genereaza intrebarile... (poate dura 30-60 secunde)")
     quiz = quiz_chain.invoke(tema)
-    print("\n--- Quiz generat ---")
+    print("\nQuiz generat:")
     afiseaza_quiz(quiz)
 
 
@@ -55,16 +54,16 @@ def _recreare_baza(vector_store, retriever, rag_chain) -> tuple:
 
 def main() -> None:
     """Punct de intrare principal. Meniu interactiv."""
-    print("=" * 60)
+    print()
     print("  Agent Virtual Educational - ETTI")
     print("  RAG + Quiz | PyTorch + LangChain | Local & Offline")
-    print("=" * 60)
+    print()
 
     vector_store, retriever = incarca_sau_creaza_vector_store(CALE_PDF_IMPLICITA)
     rag_chain = creeaza_rag_chain(retriever, CALE_PDF_IMPLICITA)
 
     while True:
-        print("\n--- Meniu ---")
+        print("\nMeniu:")
         print("1) Intreaba agentul (RAG)")
         print("2) Genereaza quiz pe o tema")
         print("3) Recreaza baza vectoriala (PDF nou sau reindexare)")

@@ -20,28 +20,26 @@ from utils import format_docs
 
 
 def main():
-    print("=" * 70)
+    print()
     print("DEBUG: De ce nu gaseste punctajul?")
-    print("=" * 70)
+    print()
 
     # 1. Ce extrage PyPDFLoader din primele pagini?
-    print("\n--- 1. EXTRAGERE PDF (primele 3 pagini) ---")
+    print("\n1. EXTRAGERE PDF (primele 3 pagini)")
     loader = PyPDFLoader(CALE_PDF_IMPLICITA)
     docs = loader.load()
     for i, doc in enumerate(docs[:3]):
         text = doc.page_content.strip()
         print(f"\n>>> Pagina {i + 1} (len={len(text)} caractere):")
-        print("-" * 50)
         text_preview = text[:800] if len(text) > 800 else text
         # Evita erori encoding pe Windows (ligaturi unicode etc.)
         text_preview = text_preview.encode("ascii", errors="replace").decode("ascii")
         print(text_preview)
         if len(text) > 800:
             print("... [trunchiat]")
-        print("-" * 50)
 
     # 2. Cum arata chunk-urile dupa split?
-    print("\n--- 2. CHUNK-URI (primele 3) ---")
+    print("\n2. CHUNK-URI (primele 3)")
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=CHUNK_SIZE,
         chunk_overlap=CHUNK_OVERLAP,
@@ -58,7 +56,7 @@ def main():
         print()
 
     # 3. Ce returneaza retriever-ul pentru intrebarea ta?
-    print("\n--- 3. CE GASESTE RETRIEVER-UL? ---")
+    print("\n3. CE GASESTE RETRIEVER-UL?")
     print("Intrebare: 'punctaj puncte laborator seminar curs'")
     print()
     vector_store, retriever = incarca_sau_creaza_vector_store(CALE_PDF_IMPLICITA)
@@ -66,12 +64,12 @@ def main():
     print(f"Am gasit {len(rezultate)} chunk-uri.")
     for i, r in enumerate(rezultate):
         meta = r.metadata
-        print(f"\n--- Chunk returnat #{i + 1} (pagina {meta.get('page', '?')}) ---")
+        print(f"\nChunk returnat #{i + 1} (pagina {meta.get('page', '?')})")
         content = r.page_content[:600].encode("ascii", errors="replace").decode("ascii")
         print(content + ("..." if len(r.page_content) > 600 else ""))
         if any(w in r.page_content.lower() for w in ["punctaj", "laborator", "seminar", "curs"]):
             print("  >>> CONTINE info despre punctaj!")
-    print("\n" + "=" * 70)
+    print("\n")
 
 
 if __name__ == "__main__":

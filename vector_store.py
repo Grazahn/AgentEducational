@@ -100,7 +100,7 @@ def incarca_sau_creaza_vector_store(
                 )
                 raise
 
-        print("--- Extragere si Chunking PDF ---")
+        print("Extragere si Chunking PDF")
         loader = PyPDFLoader(cale_pdf)
         documente = loader.load()
         splitter = RecursiveCharacterTextSplitter(
@@ -110,7 +110,7 @@ def incarca_sau_creaza_vector_store(
         bucati_text = splitter.split_documents(documente)
         print(f"Am impartit documentul in {len(bucati_text)} bucati.")
 
-        print("\n--- Creare Baza de Date Vectoriala (embeddings PyTorch) ---")
+        print("\nCreare Baza de Date Vectoriala (embeddings PyTorch)")
         print("Se genereaza vectorii... (poate dura 1-2 minute)")
         vector_store = Chroma.from_documents(
             documents=bucati_text,

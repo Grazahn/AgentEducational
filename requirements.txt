@@ -2,13 +2,15 @@
 # RAG + Quiz | PyTorch + LangChain | Local & Offline
 #
 # Biblioteci principale:
-# - PyTorch: embeddings locale (via sentence-transformers)
-# - LangChain: orchestrare RAG, LCEL, prompt-uri
+# PyTorch: embeddings locale (via sentence-transformers)
+# LangChain: orchestrare RAG, LCEL, prompt-uri
 
-# --- PyTorch (backend pentru embeddings) ---
+# Instaleaza dependintele necesare : pip install -r requirements.txt
+
+# PyTorch (backend pentru embeddings)
 torch>=2.0.0
 
-# --- LangChain ---
+# LangChain 
 langchain>=0.3.0
 langchain-community>=0.3.0
 langchain-chroma>=0.1.0
@@ -17,13 +19,13 @@ langchain-huggingface>=0.1.0
 langchain-text-splitters>=0.3.0
 langchain-core>=0.3.0
 
-# --- Embeddings locale (PyTorch + HuggingFace) ---
+# Embeddings locale (PyTorch + HuggingFace) 
 sentence-transformers>=2.2.0
 
-# --- GUI ---
+# GUI 
 gradio>=4.0.0
 
-# --- Altele ---
+# Altele 
 pydantic>=2.0.0
 pypdf>=4.0.0
 chromadb>=0.5.0
