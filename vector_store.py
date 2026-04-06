@@ -10,6 +10,7 @@ import gc
 import os
 import shutil
 import time
+from functools import lru_cache
 from typing import Optional, Tuple
 
 from langchain_community.document_loaders import PyPDFLoader
@@ -30,6 +31,7 @@ from config import (
 )
 
 
+@lru_cache(maxsize=1)
 def get_embeddings() -> HuggingFaceEmbeddings:
     """
     Returneaza instanta de embeddings configurata.
@@ -37,7 +39,7 @@ def get_embeddings() -> HuggingFaceEmbeddings:
     Foloseste sentence-transformers (PyTorch) - ruleaza 100% local.
 
     Returns:
-        HuggingFaceEmbeddings configurat pentru modelul multilingual
+        HuggingFaceEmbeddings configurat pentru modelul activ
     """
     return HuggingFaceEmbeddings(
         model_name=EMBEDDING_MODEL,
@@ -77,26 +79,27 @@ def incarca_sau_creaza_vector_store(
         Tuple (vector_store, retriever) pentru utilizare in RAG si Quiz
     """
     embeddings = get_embeddings()
+    folder_vectorial = FOLDER_DB_VECTORIALA
 
-    if not forta_recreare and os.path.exists(FOLDER_DB_VECTORIALA):
+    if not forta_recreare and os.path.exists(folder_vectorial):
         print("Baza de date vectoriala exista. Se incarca...")
         vector_store = Chroma(
-            persist_directory=FOLDER_DB_VECTORIALA,
+            persist_directory=folder_vectorial,
             embedding_function=embeddings,
         )
         print("Incarcare finalizata.")
     else:
-        if os.path.exists(FOLDER_DB_VECTORIALA):
+        if os.path.exists(folder_vectorial):
             _inchide_client_chroma(vector_store_vechi)
             gc.collect()
             time.sleep(0.5)
             print("Se sterge baza vectoriala veche...")
             try:
-                shutil.rmtree(FOLDER_DB_VECTORIALA)
+                shutil.rmtree(folder_vectorial)
             except PermissionError:
                 print(
                     "Eroare: Baza e blocata. Inchide programul, sterge manual folderul "
-                    "'db_vectoriala', apoi ruleaza din nou si alege optiunea 3."
+                    f"'{folder_vectorial}', apoi ruleaza din nou si alege optiunea 3."
                 )
                 raise
 
@@ -115,7 +118,7 @@ def incarca_sau_creaza_vector_store(
         vector_store = Chroma.from_documents(
             documents=bucati_text,
             embedding=embeddings,
-            persist_directory=FOLDER_DB_VECTORIALA,
+            persist_directory=folder_vectorial,
         )
         print("Baza de date creata cu succes.")
 
