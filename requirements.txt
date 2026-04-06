@@ -4,6 +4,7 @@
 # Biblioteci principale:
 # PyTorch: embeddings locale (via sentence-transformers)
 # LangChain: orchestrare RAG, LCEL, prompt-uri
+# LM Studio: endpoint local compatibil OpenAI
 
 # Instaleaza dependintele necesare : pip install -r requirements.txt
 
@@ -14,7 +15,7 @@ torch>=2.0.0
 langchain>=0.3.0
 langchain-community>=0.3.0
 langchain-chroma>=0.1.0
-langchain-ollama>=0.2.0
+langchain-openai>=0.2.0
 langchain-huggingface>=0.1.0
 langchain-text-splitters>=0.3.0
 langchain-core>=0.3.0

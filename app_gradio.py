@@ -5,10 +5,11 @@ Frontend simplu cu Gradio: Chat RAG, Quiz, Recreare baza.
 Ruleaza: python app_gradio.py
 """
 
+import os
+import time
+
 # Config trebuie incarcat primul (seteaza env vars pentru HuggingFace)
 from config import CALE_PDF_IMPLICITA
-
-import os
 import gradio as gr
 from vector_store import incarca_sau_creaza_vector_store, get_retriever_pentru_quiz
 from rag import creeaza_rag_chain
@@ -19,8 +20,17 @@ def _init_state():
     """Incarca agentul la pornire."""
     cale = CALE_PDF_IMPLICITA
     vs, ret = incarca_sau_creaza_vector_store(cale)
+    quiz_retriever = get_retriever_pentru_quiz(vs)
     chain = creeaza_rag_chain(ret, cale)
-    return {"vector_store": vs, "retriever": ret, "rag_chain": chain, "cale_pdf": cale}
+    quiz_chain = creeaza_quiz_chain(quiz_retriever)
+    return {
+        "vector_store": vs,
+        "retriever": ret,
+        "quiz_retriever": quiz_retriever,
+        "rag_chain": chain,
+        "quiz_chain": quiz_chain,
+        "cale_pdf": cale,
+    }
 
 
 def _append_chat(history, user_msg: str, assistant_msg: str):
@@ -36,7 +46,9 @@ def chat_fn(message, history, state):
     if not state or state.get("rag_chain") is None:
         return _append_chat(history, message, "Eroare: Agentul nu e incarcat."), state
     try:
+        start = time.perf_counter()
         raspuns = state["rag_chain"].invoke(message)
+        print(f"[Timing] RAG total: {time.perf_counter() - start:.2f}s")
         return _append_chat(history, message, raspuns), state
     except Exception as e:
         return _append_chat(history, message, f"Eroare: {str(e)}"), state
@@ -44,14 +56,14 @@ def chat_fn(message, history, state):
 
 def quiz_fn(tema, state):
     """Genereaza quiz pe tema data."""
-    if not state or state.get("vector_store") is None:
+    if not state or state.get("quiz_chain") is None:
         return "Eroare: Baza de date nu e incarcata.", state
     if not tema or not tema.strip():
         return "Introdu o tema pentru quiz.", state
     try:
-        ret_quiz = get_retriever_pentru_quiz(state["vector_store"])
-        chain = creeaza_quiz_chain(ret_quiz)
-        quiz = chain.invoke(tema.strip())
+        start = time.perf_counter()
+        quiz = state["quiz_chain"].invoke(tema.strip())
+        print(f"[Timing] Quiz total: {time.perf_counter() - start:.2f}s")
         return format_quiz_pentru_gui(quiz), state
     except Exception as e:
         return f"Eroare la generare: {str(e)}", state
@@ -68,7 +80,16 @@ def recreare_fn(cale, state):
             cale, forta_recreare=True, vector_store_vechi=vs_vechi
         )
         chain = creeaza_rag_chain(ret, cale)
-        new_state = {"vector_store": vs, "retriever": ret, "rag_chain": chain, "cale_pdf": cale}
+        quiz_retriever = get_retriever_pentru_quiz(vs)
+        quiz_chain = creeaza_quiz_chain(quiz_retriever)
+        new_state = {
+            "vector_store": vs,
+            "retriever": ret,
+            "quiz_retriever": quiz_retriever,
+            "rag_chain": chain,
+            "quiz_chain": quiz_chain,
+            "cale_pdf": cale,
+        }
         return f"Baza recreata din {os.path.basename(cale)}. Poti continua.", new_state
     except Exception as e:
         return f"Eroare: {str(e)}", state
@@ -133,7 +154,7 @@ def build_ui():
                     [recreare_out, state],
                 )
 
-        gr.Markdown("---\n*ETTI | PyTorch + LangChain + ChromaDB + Ollama*")
+        gr.Markdown("---\n*ETTI | PyTorch + LangChain + ChromaDB + LM Studio*")
 
     return demo
 

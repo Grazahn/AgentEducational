@@ -17,7 +17,7 @@ db_vectoriala_v2/
 
 # Fisiere de configurare locala si secrete
 .env
-
+STRUCTURA_PROIECT.txt
 # Fisiere specifice editoarelor de cod (IDE)
 .vscode/
 .idea/

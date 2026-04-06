@@ -7,14 +7,15 @@ in prompt.
 """
 
 import os
+import time
 
-from langchain_ollama import ChatOllama
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough, RunnableSequence
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.retrievers import BaseRetriever
 
-from config import LLM_MODEL, LLM_TEMPERATURE_RAG
+from config import AFISEAZA_TIMPI, LLM_TEMPERATURE_RAG
+from llm_factory import creeaza_chat_llm
 from utils import format_docs
 
 
@@ -58,15 +59,32 @@ def creeaza_rag_chain(retriever: BaseRetriever, cale_pdf: str) -> RunnableSequen
     Returns:
         Lant LCEL invocabil cu .invoke(intrebare)
     """
-    llm = ChatOllama(model=LLM_MODEL, temperature=LLM_TEMPERATURE_RAG)
+    llm = creeaza_chat_llm(LLM_TEMPERATURE_RAG)
     nume_materie = _extrage_nume_materie_din_pdf(cale_pdf)
     prompt = ChatPromptTemplate.from_template(_PROMPT_RAG).partial(
         nume_materie=nume_materie
     )
+    retrieval_chain = retriever | format_docs
 
     return (
-        {"context": retriever | format_docs, "question": RunnablePassthrough()}
+        {
+            "context": retrieval_chain if not AFISEAZA_TIMPI else _masoara_context(retrieval_chain, "RAG retrieval"),
+            "question": RunnablePassthrough(),
+        }
         | prompt
         | llm
         | StrOutputParser()
     )
+
+
+def _masoara_context(runnable, eticheta: str):
+    """Afiseaza durata retrieval-ului fara sa modifice continutul returnat."""
+
+    def _wrapper(input_value):
+        start = time.perf_counter()
+        rezultat = runnable.invoke(input_value)
+        durata = time.perf_counter() - start
+        print(f"[Timing] {eticheta}: {durata:.2f}s")
+        return rezultat
+
+    return _wrapper
