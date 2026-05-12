@@ -7,6 +7,8 @@ asistarea studentilor. Rulare 100% locala, offline.
 Tech stack: PyTorch (embeddings), LangChain (LCEL), ChromaDB, LM Studio.
 """
 
+import time
+
 # Config trebuie incarcat primul (seteaza env vars pentru HuggingFace)
 from config import CALE_PDF_IMPLICITA
 from vector_store import incarca_sau_creaza_vector_store, get_retriever_pentru_quiz
@@ -20,9 +22,12 @@ def _rulare_rag(vector_store, retriever, rag_chain) -> None:
     if not intrebare:
         return
     print("\nSe proceseaza...")
+    start = time.perf_counter()
     raspuns = rag_chain.invoke(intrebare)
+    durata = time.perf_counter() - start
     print("\nRaspuns:")
     print(raspuns)
+    print(f"\nTimp total raspuns: {durata:.2f} secunde")
 
 
 def _rulare_quiz(quiz_chain) -> None:
@@ -33,9 +38,12 @@ def _rulare_quiz(quiz_chain) -> None:
     if not tema:
         return
     print("\nSe genereaza intrebarile... (poate dura 30-60 secunde)")
+    start = time.perf_counter()
     quiz = quiz_chain.invoke(tema)
+    durata = time.perf_counter() - start
     print("\nQuiz generat:")
     afiseaza_quiz(quiz)
+    print(f"\nTimp total generare quiz: {durata:.2f} secunde")
 
 
 def _recreare_baza(vector_store, retriever, rag_chain, quiz_chain) -> tuple:

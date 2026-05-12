@@ -48,8 +48,10 @@ def chat_fn(message, history, state):
     try:
         start = time.perf_counter()
         raspuns = state["rag_chain"].invoke(message)
-        print(f"[Timing] RAG total: {time.perf_counter() - start:.2f}s")
-        return _append_chat(history, message, raspuns), state
+        durata = time.perf_counter() - start
+        print(f"[Timing] RAG total: {durata:.2f}s")
+        raspuns_cu_timp = f"{raspuns}\n\n_Timp total raspuns: {durata:.2f} secunde_"
+        return _append_chat(history, message, raspuns_cu_timp), state
     except Exception as e:
         return _append_chat(history, message, f"Eroare: {str(e)}"), state
 
@@ -63,8 +65,11 @@ def quiz_fn(tema, state):
     try:
         start = time.perf_counter()
         quiz = state["quiz_chain"].invoke(tema.strip())
-        print(f"[Timing] Quiz total: {time.perf_counter() - start:.2f}s")
-        return format_quiz_pentru_gui(quiz), state
+        durata = time.perf_counter() - start
+        print(f"[Timing] Quiz total: {durata:.2f}s")
+        quiz_formatat = format_quiz_pentru_gui(quiz)
+        quiz_cu_timp = f"{quiz_formatat}\n\n_Timp total generare quiz: {durata:.2f} secunde_"
+        return quiz_cu_timp, state
     except Exception as e:
         return f"Eroare la generare: {str(e)}", state
 
