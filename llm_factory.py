@@ -18,3 +18,17 @@ def creeaza_chat_llm(temperature: float) -> ChatOpenAI:
         base_url=LLM_BASE_URL,
         api_key=LLM_API_KEY,
     )
+
+
+def model_suporta_input_vizual(model_name: str | None = None) -> bool:
+    """Heuristica simpla pentru a decide daca modelul accepta imagini."""
+    candidate = (model_name or LLM_MODEL).lower()
+    indicatori = (
+        "vl",
+        "vision",
+        "gemma-4",
+        "llava",
+        "gpt-4o",
+        "qwen2.5-vl",
+    )
+    return any(indicator in candidate for indicator in indicatori)

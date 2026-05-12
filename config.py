@@ -20,8 +20,9 @@ warnings.filterwarnings("ignore", message=".*unauthenticated.*")
 # CAI SI RESURSE
 
 
-CALE_PDF_IMPLICITA: str = "cursuri_pdf/RCM.pdf"
+CALE_PDF_IMPLICITA: str = "E:\Agent-de-invatare\cursuri_pdf\\4. Amplificatoare elementare-1.pdf"
 FOLDER_DB_VECTORIALA: str = "./db_vectoriala"
+FOLDER_ASSETS_DOCUMENTE: str = "./document_assets"
 
 
 # EMBEDDINGS - PyTorch / Sentence-Transformers
@@ -55,6 +56,9 @@ LLM_MODEL: str = "qwen2.5-vl-7b-instruct"
 #LLM_MODEL: str = "gemma-4-e4b-it"
 LLM_TEMPERATURE_RAG: float = 0.0  # determinist pentru raspunsuri precise
 LLM_TEMPERATURE_QUIZ: float = 0.3  # putina varietate pentru intrebari
+ACTIVEAZA_RAG_MULTIMODAL: bool = True
+MAX_IMAGINI_CONTEXT_RAG: int = 1
+SCALA_IMAGINI_PDF: float = 1.2
 
 
 # QUIZ
