@@ -4,8 +4,10 @@ Agent Virtual Educational - ETTI
 Pipeline RAG (Retrieval-Augmented Generation) + Modul Quiz pentru
 asistarea studentilor. Rulare 100% locala, offline.
 
-Tech stack: PyTorch (embeddings), LangChain (LCEL), ChromaDB, Ollama.
+Tech stack: PyTorch (embeddings), LangChain (LCEL), ChromaDB, LM Studio.
 """
+
+import time
 
 # Config trebuie incarcat primul (seteaza env vars pentru HuggingFace)
 from config import CALE_PDF_IMPLICITA
@@ -20,27 +22,31 @@ def _rulare_rag(vector_store, retriever, rag_chain) -> None:
     if not intrebare:
         return
     print("\nSe proceseaza...")
+    start = time.perf_counter()
     raspuns = rag_chain.invoke(intrebare)
+    durata = time.perf_counter() - start
     print("\nRaspuns:")
     print(raspuns)
+    print(f"\nTimp total raspuns: {durata:.2f} secunde")
 
 
-def _rulare_quiz(vector_store, retriever) -> None:
+def _rulare_quiz(quiz_chain) -> None:
     """Flux interactiv pentru generare quiz."""
     tema = input(
         "\nTema pentru quiz (ex: reguli de curs, laborator): "
     ).strip()
     if not tema:
         return
-    retriever_quiz = get_retriever_pentru_quiz(vector_store)
-    quiz_chain = creeaza_quiz_chain(retriever_quiz)
     print("\nSe genereaza intrebarile... (poate dura 30-60 secunde)")
+    start = time.perf_counter()
     quiz = quiz_chain.invoke(tema)
+    durata = time.perf_counter() - start
     print("\nQuiz generat:")
     afiseaza_quiz(quiz)
+    print(f"\nTimp total generare quiz: {durata:.2f} secunde")
 
 
-def _recreare_baza(vector_store, retriever, rag_chain) -> tuple:
+def _recreare_baza(vector_store, retriever, rag_chain, quiz_chain) -> tuple:
     """Recreeaza baza vectoriala si returneaza noile obiecte."""
     cale = input(f"\nCale PDF [{CALE_PDF_IMPLICITA}]: ").strip() or CALE_PDF_IMPLICITA
     print("\nSe recreeaza baza... (poate dura 1-2 minute)")
@@ -48,8 +54,9 @@ def _recreare_baza(vector_store, retriever, rag_chain) -> tuple:
         cale, forta_recreare=True, vector_store_vechi=vector_store
     )
     rag_chain = creeaza_rag_chain(retriever, cale)
+    quiz_chain = creeaza_quiz_chain(get_retriever_pentru_quiz(vector_store))
     print("Baza vectoriala recreata. Poți continua cu intrebari si quiz.")
-    return vector_store, retriever, rag_chain
+    return vector_store, retriever, rag_chain, quiz_chain
 
 
 def main() -> None:
@@ -61,6 +68,7 @@ def main() -> None:
 
     vector_store, retriever = incarca_sau_creaza_vector_store(CALE_PDF_IMPLICITA)
     rag_chain = creeaza_rag_chain(retriever, CALE_PDF_IMPLICITA)
+    quiz_chain = creeaza_quiz_chain(get_retriever_pentru_quiz(vector_store))
 
     while True:
         print("\nMeniu:")
@@ -73,10 +81,10 @@ def main() -> None:
         if optiune == "1":
             _rulare_rag(vector_store, retriever, rag_chain)
         elif optiune == "2":
-            _rulare_quiz(vector_store, retriever)
+            _rulare_quiz(quiz_chain)
         elif optiune == "3":
-            vector_store, retriever, rag_chain = _recreare_baza(
-                vector_store, retriever, rag_chain
+            vector_store, retriever, rag_chain, quiz_chain = _recreare_baza(
+                vector_store, retriever, rag_chain, quiz_chain
             )
         elif optiune == "4":
             print("La revedere!")

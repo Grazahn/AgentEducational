@@ -5,12 +5,18 @@ Lant LCEL cu output structurat (Pydantic) pentru formularea automata
 a intrebarilor de evaluare.
 """
 
-from langchain_ollama import ChatOllama
+import time
+
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough, RunnableSequence
 from langchain_core.retrievers import BaseRetriever
 
-from config import LLM_MODEL, LLM_TEMPERATURE_QUIZ, NUMAR_INTREBARI_QUIZ
+from config import (
+    AFISEAZA_TIMPI,
+    LLM_TEMPERATURE_QUIZ,
+    NUMAR_INTREBARI_QUIZ,
+)
+from llm_factory import creeaza_chat_llm
 from models import QuizComplet
 from utils import format_docs
 
@@ -44,15 +50,32 @@ def creeaza_quiz_chain(retriever: BaseRetriever) -> RunnableSequence:
     Returns:
         Lant invocabil care returneaza obiect QuizComplet
     """
-    llm_base = ChatOllama(model=LLM_MODEL, temperature=LLM_TEMPERATURE_QUIZ)
+    llm_base = creeaza_chat_llm(LLM_TEMPERATURE_QUIZ)
     llm = llm_base.with_structured_output(QuizComplet)
     prompt = ChatPromptTemplate.from_template(_PROMPT_QUIZ)
+    retrieval_chain = retriever | format_docs
 
     return (
-        {"context": retriever | format_docs, "topic": RunnablePassthrough()}
+        {
+            "context": retrieval_chain if not AFISEAZA_TIMPI else _masoara_context(retrieval_chain, "Quiz retrieval"),
+            "topic": RunnablePassthrough(),
+        }
         | prompt.partial(n=NUMAR_INTREBARI_QUIZ)
         | llm
     )
+
+
+def _masoara_context(runnable, eticheta: str):
+    """Afiseaza durata retrieval-ului fara sa modifice continutul returnat."""
+
+    def _wrapper(input_value):
+        start = time.perf_counter()
+        rezultat = runnable.invoke(input_value)
+        durata = time.perf_counter() - start
+        print(f"[Timing] {eticheta}: {durata:.2f}s")
+        return rezultat
+
+    return _wrapper
 
 
 def _curata_varianta(text: str, index_litera: int) -> str:
@@ -88,7 +111,7 @@ def format_quiz_pentru_gui(quiz: QuizComplet) -> str:
         linii.append(f"### Intrebare {i}\n{q.intrebare}\n")
         for j, v in enumerate(q.variante):
             v_curat = _curata_varianta(v, j)
-            marcaj = " **(*)**" if j == q.raspuns_corect else ""
-            linii.append(f"- **{litere[j]})** {v_curat}{marcaj}")
+            marcaj = " (*)" if j == q.raspuns_corect else ""
+            linii.append(f"- {litere[j]}) {v_curat}{marcaj}")
         linii.append("")
     return "\n".join(linii)

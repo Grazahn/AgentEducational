@@ -14,10 +14,11 @@ ENV/
 db_vectoriala/
 db_vectoriala_locala/
 db_vectoriala_v2/
+document_assets/
 
 # Fisiere de configurare locala si secrete
 .env
-
+STRUCTURA_PROIECT.txt
 # Fisiere specifice editoarelor de cod (IDE)
 .vscode/
 .idea/
